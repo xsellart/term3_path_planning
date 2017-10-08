@@ -46,6 +46,8 @@ public:
 
   string state;
 
+  vector<string> available_states;
+
   /**
   * Constructor
   */
@@ -85,6 +87,10 @@ public:
   vector<vector<int> > generate_predictions(int horizon);
 
   int find_lane (double d);
+
+  void update_available_states(int lane);
+
+  vector<vector<double>> generate_traj_for_state(map<int,vector < vector<int> > > predictions);
 
 };
 

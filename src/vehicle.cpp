@@ -6,6 +6,9 @@
 #include <string>
 #include <iterator>
 
+//#define DEBUG_UPDATE_STATE
+#define DEBUG_GEN_TRAJECTORIES
+
 /**
  * Initializes Vehicle
  */
@@ -58,6 +61,7 @@ void Vehicle::update_state(map<int,vector < vector<int> > > predictions) {
 
     */
     state = "KL"; // this is an example of how you change state.
+    update_available_states(this-> lane);
 
 
 }
@@ -220,10 +224,10 @@ void Vehicle::realize_keep_lane(map<int,vector< vector<int> > > predictions) {
 }
 
 void Vehicle::realize_lane_change(map<int,vector< vector<int> > > predictions, string direction) {
-	int delta = -1;
+	int delta = 1;
     if (direction.compare("L") == 0)
     {
-    	delta = 1;
+    	delta = -1;
     }
     this->lane += delta;
     int lane = this->lane;
@@ -232,10 +236,10 @@ void Vehicle::realize_lane_change(map<int,vector< vector<int> > > predictions, s
 }
 
 void Vehicle::realize_prep_lane_change(map<int,vector<vector<int> > > predictions, string direction) {
-	int delta = -1;
+	int delta = 1;
     if (direction.compare("L") == 0)
     {
-    	delta = 1;
+    	delta = -1;
     }
     int lane = this->lane + delta;
 
@@ -332,4 +336,60 @@ int Vehicle::find_lane (double d){
     }
 
     return lane;
+}
+
+void Vehicle::update_available_states(int lane) {
+  /*  Updates the available "states" based on the current state:
+  "KL" - Keep Lane
+   - The vehicle will attempt to drive its target speed, unless there is 
+     traffic in front of it, in which case it will slow down.
+  "LCL" or "LCR" - Lane Change Left / Right
+   - The vehicle will change lanes and then follow longitudinal
+     behavior for the "KL" state in the new lane. */
+
+  this->available_states = {"KL","PLCL","PLCR"};
+  if (lane == 0) {
+    this->available_states.push_back("LCR");
+  }
+  else if (lane == 2) {
+    this->available_states.push_back("LCL");
+  }
+  else {
+    this->available_states.push_back("LCL");
+    this->available_states.push_back("LCR");
+  }
+
+  #ifdef DEBUG_UPDATE_STATE
+  cout << "Available States " << available_states.size() << endl;
+  for (int i = 0;i<available_states.size();i++)
+  {
+    cout << available_states[i] << endl;
+  }
+  #endif
+}
+
+vector<vector<double>> Vehicle::generate_traj_for_state(map<int,vector < vector<int> > > predictions){
+
+    Vehicle Host_Vehicle_copy = Vehicle(this->lane,this->s,this->v,this->a);
+
+    for (int i = 0;i<this->available_states.size();i++)
+    {
+        this->lane = Host_Vehicle_copy.lane;
+        this->s = Host_Vehicle_copy.s;
+        this->v = Host_Vehicle_copy.v;
+        this->a = Host_Vehicle_copy.a;
+        this->state = available_states[i];
+        
+        realize_state(predictions);
+
+        #ifdef DEBUG_GEN_TRAJECTORIES
+        cout << "State " << this->state << " Acc " << this->a << " Lane " << this->lane << endl;
+        #endif
+
+    }
+
+    vector<vector<double>> test;
+
+    return test;
+
 }
