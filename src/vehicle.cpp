@@ -12,12 +12,13 @@
 /**
  * Initializes Vehicle
  */
-Vehicle::Vehicle(int lane, double s, double v, double a) {
+Vehicle::Vehicle(int lane, double s, double v, double a,double TTC) {
 
     this->lane = lane;
     this->s = s;
     this->v = v;
     this->a = a;
+    this->TTC = TTC;
     state = "CS";
     max_acceleration = -1;
 
@@ -370,7 +371,8 @@ void Vehicle::update_available_states(int lane) {
 
 vector<vector<double>> Vehicle::generate_traj_for_state(map<int,vector < vector<int> > > predictions){
 
-    Vehicle Host_Vehicle_copy = Vehicle(this->lane,this->s,this->v,this->a);
+    Vehicle Host_Vehicle_copy = Vehicle(this->lane,this->s,this->v,this->a,this->TTC);
+    map<string, vector<vector<int>>> HV_Trajectories;
 
     for (int i = 0;i<this->available_states.size();i++)
     {
@@ -380,10 +382,17 @@ vector<vector<double>> Vehicle::generate_traj_for_state(map<int,vector < vector<
         this->a = Host_Vehicle_copy.a;
         this->state = available_states[i];
         
-        realize_state(predictions);
+         // realize_state(predictions);
+         // vector<vector<int>> HV_Trajectory = this->generate_predictions(1);
+         // HV_Trajectories[this->state] = HV_Trajectory;
+
+        
+
+        
 
         #ifdef DEBUG_GEN_TRAJECTORIES
         cout << "State " << this->state << " Acc " << this->a << " Lane " << this->lane << endl;
+        cout << "HV_Trajectories " << HV_Trajectories.size() << endl;
         #endif
 
     }
@@ -393,3 +402,16 @@ vector<vector<double>> Vehicle::generate_traj_for_state(map<int,vector < vector<
     return test;
 
 }
+
+//void Vehicle::generate_traj_for_state(map<int,vector < vector<int> > > predictions){
+
+// The first objective is to calculate the TTC (Time To Collission for each of the Target Vehicles)
+
+
+
+
+
+// we want to return the lane and velocity
+
+    //;
+//}

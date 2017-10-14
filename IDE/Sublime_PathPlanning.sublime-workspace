@@ -4,16 +4,28 @@
 		"selected_items":
 		[
 			[
+				"H",
+				"HV_Trajectories"
+			],
+			[
+				"HV_",
+				"HV_Trajectory"
+			],
+			[
+				"HV_TRA",
+				"HV_Trajectories"
+			],
+			[
+				"generate",
+				"generate_predictions"
+			],
+			[
 				"s",
 				"s"
 			],
 			[
 				"v",
 				"v"
-			],
-			[
-				"generate",
-				"generate_traj_for_state"
 			],
 			[
 				"avai",
@@ -43,7 +55,7 @@
 			"file": "/home/xsellart/Documents/term3/term3_path_planning/src/main.cpp",
 			"settings":
 			{
-				"buffer_size": 14394,
+				"buffer_size": 14395,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -52,7 +64,7 @@
 			"file": "/home/xsellart/Documents/term3/term3_path_planning/src/vehicle.cpp",
 			"settings":
 			{
-				"buffer_size": 9591,
+				"buffer_size": 9876,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -182,7 +194,7 @@
 	],
 	"find":
 	{
-		"height": 38.0
+		"height": 23.0
 	},
 	"find_in_files":
 	{
@@ -226,15 +238,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 14394,
+						"buffer_size": 14395,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								8517,
-								8517
+								8432,
+								8433
 							]
 						],
 						"settings":
@@ -242,7 +254,7 @@
 							"syntax": "Packages/C++/C++.sublime-syntax"
 						},
 						"translation.x": 0.0,
-						"translation.y": 3600.0,
+						"translation.y": 4185.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
@@ -254,15 +266,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 9591,
+						"buffer_size": 9876,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								6504,
-								6504
+								8885,
+								8885
 							]
 						],
 						"settings":
@@ -272,7 +284,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 5505.0,
+						"translation.y": 4078.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 1,
@@ -302,7 +314,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1125.0,
+						"translation.y": 753.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 2,
@@ -321,8 +333,8 @@
 						"selection":
 						[
 							[
-								264,
-								232
+								1082,
+								1082
 							]
 						],
 						"settings":
@@ -332,7 +344,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 90.0,
+						"translation.y": 346.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 4,
@@ -380,8 +392,8 @@
 						"selection":
 						[
 							[
-								745,
-								789
+								9982,
+								9985
 							]
 						],
 						"settings":
@@ -390,8 +402,8 @@
 							"tab_size": 2,
 							"translate_tabs_to_spaces": true
 						},
-						"translation.x": 100.0,
-						"translation.y": 315.0,
+						"translation.x": 0.0,
+						"translation.y": 4426.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 3,

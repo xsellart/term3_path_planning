@@ -44,6 +44,8 @@ public:
 
   int goal_s;
 
+  double TTC;
+
   string state;
 
   vector<string> available_states;
@@ -51,7 +53,7 @@ public:
   /**
   * Constructor
   */
-  Vehicle(int lane, double s, double v, double a);
+  Vehicle(int lane, double s, double v, double a,double TTC);
 
   /**
   * Destructor

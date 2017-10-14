@@ -22,9 +22,10 @@ double deg2rad(double x) { return x * pi() / 180; }
 double rad2deg(double x) { return x * 180 / pi(); }
 
 // DEBUG Control
-//#define DEBUG_PREDICTIONS 
+#define DEBUG_PREDICTIONS 
 //#define DEBUG_EGO_VEHICLE
 #define DEBUG_UPDATE_STATE
+#define DEBUG_BEHAVIOR
 
 // Checks if the SocketIO event has JSON data.
 // If there is data the JSON object in string format will be returned,
@@ -272,6 +273,7 @@ int main() {
         vector<Vehicle> target_vehicles;
         map<int, vector<vector<int>>> predictions;
 
+
         //cout << "Host Vehicle Distance " << car_d << endl;
         //cout << "Number of target vehicles " << sensor_fusion.size() << endl;
 
@@ -280,6 +282,7 @@ int main() {
 		cout << "Number of target vehicles " << sensor_fusion.size() << endl;
 		#endif
 
+
         for(int i=0; i < sensor_fusion.size(); i++){
    			
    			double tv_vx = sensor_fusion[i][3];
@@ -287,26 +290,37 @@ int main() {
 			double tv_vel = sqrt(tv_vx*tv_vx+tv_vy*tv_vy);
 			double tv_s = sensor_fusion[i][5];
 
-			Vehicle target_vehicle = Vehicle(0,tv_s, tv_vel,0);
+			Vehicle target_vehicle = Vehicle(0,tv_s, tv_vel,0,0);
 			target_vehicle.lane = target_vehicle.find_lane(sensor_fusion[i][6]);
-			target_vehicles.push_back(target_vehicle);
+			
 
 			int tv_id = sensor_fusion[i][0];
-			int prediction_duration = 5;
+			int prediction_duration = 1;
 			vector<vector<int>> preds = target_vehicle.generate_predictions(prediction_duration);
 			predictions[tv_id] = preds;
+			double tv_ttc;
+			if (car_speed > 0)
+			{
+			tv_ttc = ((tv_s - car_s)/(tv_vel - car_speed*0.000277778));	
+			}
+			else
+			{
+			tv_ttc = 999999;
+			}
+			target_vehicle.TTC = tv_ttc;
+			target_vehicles.push_back(target_vehicle);
 
 			#ifdef DEBUG_PREDICTIONS
-			cout << "ID " << tv_id  << " vel(MPH) " << tv_vel/0.44704 << " s " << tv_s <<  " Lane  " << target_vehicle.lane << endl;
+			cout << "ID " << tv_id  << " vel(MPH) " << tv_vel/0.44704 << " s " << tv_s <<  " Lane  " << target_vehicle.lane << " TTC " << tv_ttc << endl;
 			#endif
 		}
 
 		// We have to create the host vehicle object
 
-		Vehicle Host_Vehicle = Vehicle(0,car_s,car_speed,0);
+		Vehicle Host_Vehicle = Vehicle(0,car_s,car_speed,0,0);
 		Host_Vehicle.lane = Host_Vehicle.find_lane(car_d);
 		Host_Vehicle.update_available_states(Host_Vehicle.lane);
-		Host_Vehicle.generate_traj_for_state(predictions);
+		//Host_Vehicle.generate_traj_for_state(predictions);
 
 
 		int prev_size = previous_path_x.size(); // size of the waypoints not achieved during the last iteration
@@ -330,48 +344,142 @@ int main() {
 		}
 
 		bool too_close = false;
+		bool right_warning = false;
+		bool left_warning = false;
+		bool front_warning = false;
+		double HV_target_velocity = 49;
+		double TV_TTC_velocity = 30;
+		lane = Host_Vehicle.lane;
 
-		for (int i = 0; i < sensor_fusion.size();i++)
+		for (int i = 0; i < target_vehicles.size();i++)
 		{
 		// Check if the cars are in our lane
-		float d = sensor_fusion[i][6];  		
-		
-		if ((d < (2+4*lane+2)) && (d > (2+4*lane-2)))
-		{
-		double vx = sensor_fusion[i][3];
-		double vy = sensor_fusion[i][4];
-		double check_speed = sqrt(vx*vx+vy*vy);
-		double check_car_s = sensor_fusion[i][5];
-
-		check_car_s+=((double)prev_size*.02*check_speed);
-
-		if ((check_car_s > car_s) && (check_car_s - car_s < 30))
-		{
-		std::cout << "check_car_s " << ref_vel << std::endl;
-		//ref_vel = 29;
-		too_close = true;
-
-		if (lane > 0){
-		lane = 0;
-		}
-		}
-
-
-		if (too_close)
-		{
-		//std::cout << "Inside too_close " << ref_vel << std::endl;
-		ref_vel-=.224;
-		}else if (ref_vel < 49)
-		{
-		//std::cout << "Inside elseif " << ref_vel << std::endl;
-		ref_vel+=.224;
-		}
-
-		}
 		
 		
 
+		double TTC_WARNING = 2;
+		double TV_Distance = target_vehicles[i].s - Host_Vehicle.s;
+
+		if (abs(target_vehicles[i].TTC) < TTC_WARNING && TV_Distance > 0)
+		{
+			if (target_vehicles[i].lane == Host_Vehicle.lane)
+			{
+				front_warning = true;
+				TV_TTC_velocity = target_vehicles[i].v;
+			}
+			if (target_vehicles[i].lane > Host_Vehicle.lane)
+			{
+				right_warning = true;
+			}
+			if (target_vehicles[i].lane < Host_Vehicle.lane)
+			{
+				left_warning = true;
+			}
+
+		} 
 		}
+
+		if (front_warning == false)// && right_warning == false && left_warning == false )
+		{
+			//ref_vel = HV_target_velocity;
+			if (ref_vel < 49)
+			{
+				ref_vel+=.224;
+			}
+			
+		} 
+		else if (front_warning == true)
+		{
+			if (right_warning == true && left_warning == true)
+			{
+				//if (ref_vel < 49)
+			//{
+				ref_vel -=.224;// TV_TTC_velocity/0.44704 - 5;
+			//}
+				#ifdef DEBUG_BEHAVIOR
+				cout << "Front Warning decrease velocity " << " Lane " << lane <<  endl;
+				#endif
+			}
+			else if (right_warning == true && Host_Vehicle.lane > 0)
+			{
+				lane -= 1; 
+				#ifdef DEBUG_BEHAVIOR
+				cout << "Front Warning turn left " << " Lane " << lane <<  endl;
+				#endif
+			}
+			else if (left_warning == true && Host_Vehicle.lane < 2)
+			{
+				lane += 1;
+				#ifdef DEBUG_BEHAVIOR
+				cout << "Front Warning turn right " << " Lane " << lane << endl;
+				#endif
+			}
+
+			else
+			{
+				//if (ref_vel < 49)
+			//{
+				if (lane > 0)
+				{
+					lane -= 1;
+				}
+				else if (lane < 2)
+				{
+					lane += 1;
+				}
+				ref_vel-=.224;
+			//}
+				
+				#ifdef DEBUG_BEHAVIOR
+				cout << "Front Warning nothing " << " Lane " << lane << endl;
+				#endif
+			}
+		
+
+
+
+
+
+		
+		// if ((d < (2+4*lane+2)) && (d > (2+4*lane-2)))
+		// {
+		// double vx = sensor_fusion[i][3];
+		// double vy = sensor_fusion[i][4];
+		// double check_speed = sqrt(vx*vx+vy*vy);
+		// double check_car_s = sensor_fusion[i][5];
+
+		// check_car_s+=((double)prev_size*.02*check_speed);
+
+		// if ((check_car_s > car_s) && (check_car_s - car_s < 30))
+		// {
+		// std::cout << "check_car_s " << ref_vel << std::endl;
+		// //ref_vel = 29;
+		// too_close = true;
+
+		// if (lane > 0){
+		// lane = 0;
+		// }
+		// }
+
+
+		// if (too_close)
+		// {
+		// //std::cout << "Inside too_close " << ref_vel << std::endl;
+		// ref_vel-=.224;
+		// }else if (ref_vel < 49)
+		// {
+		// //std::cout << "Inside elseif " << ref_vel << std::endl;
+		// ref_vel+=.224;
+		// }
+
+		// }
+		
+		//ref_vel = 30;
+
+		}
+		#ifdef DEBUG_BEHAVIOR
+		cout << "Front warning " << front_warning << " Right Warning " << right_warning << " Left Warning " << left_warning << endl;
+		#endif
 
 
 		// We have to check previous path to see if its empty or we can use past waypoints
