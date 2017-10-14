@@ -47,16 +47,109 @@ In the following lines it's shown the implementation of such module:
     
 It is important to remark, that I've created a parameter for each target vehicle called TTC (Time To Collision). This parameter provides us a very useful information for determining the risk of collisions and also deciding when to turn right or left in the highway.
 
+## BEHAVIOR PLANNING
+The main purpose of this module is to decide when the car shall behave to react to the different situations which can be found during the highway driving. The output of this module are the velocity and the lane where the host vehicle shall be driving.
+
+In the following lines it is shown the implementation of such module:
 
 
+		bool too_close = false;
+		bool right_warning = false;
+		bool left_warning = false;
+		bool front_warning = false;
+		double HV_target_velocity = 49;
+		double TV_TTC_velocity = 30;
+		lane = Host_Vehicle.lane;
 
+		for (int i = 0; i < target_vehicles.size();i++)
+		{
+		// Check if the cars are in our lane
+		
+		
 
+		double TTC_WARNING = 2;
+		double TV_Distance = target_vehicles[i].s - Host_Vehicle.s;
 
+		if (abs(target_vehicles[i].TTC) < TTC_WARNING && TV_Distance > 0)
+		{
+			if (target_vehicles[i].lane == Host_Vehicle.lane)
+			{
+				front_warning = true;
+				TV_TTC_velocity = target_vehicles[i].v;
+			}
+			if (target_vehicles[i].lane > Host_Vehicle.lane)
+			{
+				right_warning = true;
+			}
+			if (target_vehicles[i].lane < Host_Vehicle.lane)
+			{
+				left_warning = true;
+			}
 
+		} 
+		}
 
+		if (front_warning == false)// && right_warning == false && left_warning == false )
+		{
+			//ref_vel = HV_target_velocity;
+			if (ref_vel < 49)
+			{
+				ref_vel+=.224;
+			}
+			
+		} 
+		else if (front_warning == true)
+		{
+			if (right_warning == true && left_warning == true)
+			{
+				//if (ref_vel < 49)
+			//{
+				ref_vel -=.224;// TV_TTC_velocity/0.44704 - 5;
+			//}
+				#ifdef DEBUG_BEHAVIOR
+				cout << "Front Warning decrease velocity " << " Lane " << lane <<  endl;
+				#endif
+			}
+			else if (right_warning == true && Host_Vehicle.lane > 0)
+			{
+				lane -= 1; 
+				#ifdef DEBUG_BEHAVIOR
+				cout << "Front Warning turn left " << " Lane " << lane <<  endl;
+				#endif
+			}
+			else if (left_warning == true && Host_Vehicle.lane < 2)
+			{
+				lane += 1;
+				#ifdef DEBUG_BEHAVIOR
+				cout << "Front Warning turn right " << " Lane " << lane << endl;
+				#endif
+			}
 
+			else
+			{
+				//if (ref_vel < 49)
+			//{
+				if (lane > 0)
+				{
+					lane -= 1;
+				}
+				else if (lane < 2)
+				{
+					lane += 1;
+				}
+				ref_vel-=.224;
+				
+It is important to remark that the key of such module is to verify is there is any risk of collsion around the host vehicle. If there are no collission risks we have to decide if we want to drive at target speed, turn right, turn left or decrease the speed.
 
+Once this has been decided, the commands of velocity and lane are sent to the trajectory planner module.
 
+## TRAJECTORY GENERATION
+The main objective of the TRAJECTORY GENERATION module is to generate a path which will be sent to the Simulator. Such module is based in the one which has been explained and implemented by Udacity professors in the "Walkthrough".
+
+## CONCLUSIONS 
+I've succesfully implemented and algorithm which is able to take decisions and drive autonomously in a highway. At the beginning   my objective was to generate a set of predictions for each target vehicle and also implement a set of trajectories for each state of the host vehicle and implement some cost funcions in order to do it in a more robust way. However, my computer was not able to compute all the calculation in real-time and I finally decided to implement a simpler implementation which was also able to work for the Highway scenario.
+
+My conclusion is that to implement a good path planning module it is necessary a powerful computer to implement all the diferent states that can be found in the reality. It is also really difficult to define all the states that can be found in the road and that's why I think this is one of the most difficult parts in the development of an Automated Vehicle.
 
 # CarND-Path-Planning-Project
 Self-Driving Car Engineer Nanodegree Program
